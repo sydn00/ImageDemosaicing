@@ -12,5 +12,5 @@ else()
     add_link_options(-fsanitize=address)
 endif()
 
-add_executable(main src/main.cpp src/image.hpp)
-
+add_executable(main src/main.cpp src/image.hpp src/kernels.hpp)
+target_link_libraries(main opencv_imgcodecs opencv_core opencv_highgui)
