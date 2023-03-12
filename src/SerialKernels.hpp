@@ -1,4 +1,7 @@
 #include "image.hpp"
+#include <algorithm>
+#include <limits>
+#include <limits.h>
 
 //Algorithm approach 1 -> Each block of 9 pixel(3x3) can be iterated but
 //                        right edge of the one block will be left of the next one(same for 
@@ -49,7 +52,7 @@ void populateGreen(Image<T,idxT>& image){
             else if(alpha == beta)
                 G5 = (2*(G2 + G4 + G6 + G8) - A1 - A3 + 4*A5 - A7 - A9)/8;
             
-            image(1,i,j) = G5;
+            image(1,i,j) = std::clamp<T>(G5,0,UCHAR_MAX);
             
         }
     }
@@ -82,7 +85,7 @@ void populateGreen(Image<T,idxT>& image){
             else if(alpha == beta)
                 G5 = (2*(G2 + G4 + G6 + G8) - A1 - A3 + 4*A5 - A7 - A9)/8;
             
-            image(1,i,j) = G5;
+            image(1,i,j) = std::clamp<T>(G5,0,UCHAR_MAX);
             
         }
     }
@@ -109,7 +112,8 @@ void populateBlue(Image<T,idxT>& image){
             T G3 = image(1,i,j+1);
             
             T A2 = (A1 + A3 - G1 + 2*G2 - G3) / 2;
-            image(0,i,j) = A2;
+
+            image(0,i,j) = std::clamp<T>(A2,0,UCHAR_MAX);
         }
     }
 
@@ -125,7 +129,8 @@ void populateBlue(Image<T,idxT>& image){
             T G7 = image(1,i+1,j);
 
             T A4 = (A1 + A7 - G1 + 2*G4 -G7) / 2;
-            image(0,i,j) = A4;
+
+            image(0,i,j) = std::clamp<T>(A4,0,UCHAR_MAX);
         }
     }
 
@@ -156,7 +161,7 @@ void populateBlue(Image<T,idxT>& image){
             if(alpha==beta)
                 C5 = (2*(A1 + A3 + A7 + A9) - G1 - G3 + 4*G5 - G7 - G9) / 8;
             
-            image(0,i,j) = C5;
+            image(0,i,j) = std::clamp<T>(C5,0,UCHAR_MAX);
 
             
         }
@@ -183,7 +188,8 @@ void populateRed(Image<T,idxT>& image){
             T G3 = image(1,i,j+1);
             
             T A2 = (A1 + A3 - G1 + 2*G2 - G3) / 2;
-            image(2,i,j) = A2;
+
+            image(2,i,j) = std::clamp<T>(A2,0,UCHAR_MAX);
         }
     }
 
@@ -199,7 +205,8 @@ void populateRed(Image<T,idxT>& image){
             T G7 = image(1,i+1,j);
 
             T A4 = (A1 + A7 - G1 + 2*G4 -G7) / 2;
-            image(2,i,j) = A4;
+
+            image(2,i,j) = std::clamp<T>(A4,0,UCHAR_MAX);
         }
     }
 
@@ -229,7 +236,7 @@ void populateRed(Image<T,idxT>& image){
             if(alpha==beta)
                 C5 = (2*(A1 + A3 + A7 + A9) - G1 - G3 + 4*G5 - G7 - G9) / 8;
             
-            image(2,i,j) = C5;
+            image(2,i,j) = std::clamp<T>(C5,0,UCHAR_MAX);
         }
     }
     

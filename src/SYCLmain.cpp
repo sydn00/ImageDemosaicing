@@ -1,8 +1,10 @@
-#pragma once
 #include "image.hpp"
 #include <CL/sycl.hpp>
 #include <iostream>
-//syclcc -o sycl_main SYCLmain.cpp -O3 --hipsycl-targets="cuda-nvcxx" -l opencv_imgcodecs -l opencv_core -l opencv_highgui
+#include <algorithm>
+#include <limits>
+#include <limits.h>
+//syclcc -o sycl_main SYCLmain.cpp -O3 --opensycl-targets="cuda-nvcxx::ccnative" -l opencv_imgcodecs -l opencv_core -l opencv_highgui
 //Data Parallel C++ -> p.66 image buffer class  p.184->image accessor
 using namespace hipsycl::sycl;
 using namespace cv;
@@ -23,15 +25,17 @@ void PopulateParallel(Image<T,idxT>& image){
         buffer<T,3> imgBuffer {image.getPointer(),range<3>(image.getHeight(),image.getWidth(),3),{property::buffer::use_host_ptr{}}};
 
         ////1th run -> populating luminance(green) channel --- total red pixels on width and height = h/2,w/2 
-        //since left, right, top and bottom pixels are not used for algo h/2 - 2, w/2 - 2 threads
+        //since left, right, top and bottom pixels are not used for algo h/2 - 2, w/2 - 2 thread domain has to be defined
+        //   (h/2 -> total thread count in one row,  h/2-2 exluding boundaries)
         //are needed.  
+        
         Q.submit([&](handler& h){
             accessor<T,3> imgAcc(imgBuffer,h,read_write);
             local_accessor<T,2> imgLocalAcc(range(10,10),h);          
+            
 
             //h.parallel_for(nd_range<2>{range<2>{height,width},range<2>{15,15}},[=](nd_item<2> item){ //num_group = global_size / local_size check constructor
-            h.parallel_for(range<2>{(height-2)/2,(width-2)/2},[=](id<2> idx){
-                
+            h.parallel_for(range<2>{height/2-2,width/2-2},[=](id<2> idx){
                 //calculating red pixel's green color
                 idxT i = 2*idx[0]+2;
                 idxT j = 2*idx[1]+3;
@@ -59,9 +63,8 @@ void PopulateParallel(Image<T,idxT>& image){
                 if(alpha==beta)
                     G5 = (2*(G2 + G4 + G6 + G8) - A1 - A3 + 4*A5 - A7 - A9) / 8;
 
-                imgAcc[i][j][1] = G5;
+                imgAcc[i][j][1] = std::clamp<T>(G5,0,UCHAR_MAX);
                 
-
 
                 //calculating blue pixel's green color
                 i = 2*idx[0]+3;
@@ -89,7 +92,8 @@ void PopulateParallel(Image<T,idxT>& image){
                 if(alpha==beta)
                     G5 = (2*(G2 + G4 + G6 + G8) - A1 - A3 + 4*A5 - A7 - A9) / 8;
 
-                imgAcc[i][j][1] = G5;
+                
+                imgAcc[i][j][1] = std::clamp<T>(G5,0,UCHAR_MAX);
             
             
                 
@@ -98,13 +102,13 @@ void PopulateParallel(Image<T,idxT>& image){
         });
         Q.wait();
         
-            
+        
         
         //2nd run-> populating blue channel
         Q.submit([&](handler& h){
             accessor<T,3> imgAcc(imgBuffer,h,read_write);
 
-            h.parallel_for(range<2>{(height-2)/2,(width-2)/2},[=](id<2> idx){
+            h.parallel_for(range<2>{height/2-1,width/2-1},[=](id<2> idx){
                 idxT i = 2*idx[0]+2;
                 idxT j = 2*idx[1]+1;
                 
@@ -126,14 +130,16 @@ void PopulateParallel(Image<T,idxT>& image){
                 //horizontal neighbours
                 T A2 = (A1 + A3 - G1 + 2*G2 - G3) / 2;
                 T A8 = (A7 + A9 - G7 + 2*G8 - G9) / 2;
-                imgAcc[i-1][j][0] = A2;
-                imgAcc[i+1][j][0] = A8;
+
+                imgAcc[i-1][j][0] = std::clamp<T>(A2,0,UCHAR_MAX);
+                imgAcc[i+1][j][0] = std::clamp<T>(A8,0,UCHAR_MAX);
 
                 //vertical neighbours
                 T A4 = (A1 + A7 -G1 + 2*G4 - G7) / 2;
                 T A6 = (A3 + A9 - G3 + 2*G6 - G9) / 2;
-                imgAcc[i][j-1][0] = A4;
-                imgAcc[i][j+1][0] = A6;
+                
+                imgAcc[i][j-1][0] = std::clamp<T>(A4,0,UCHAR_MAX);
+                imgAcc[i][j+1][0] = std::clamp<T>(A6,0,UCHAR_MAX);
 
                 //diagonal neighbours
                 T alpha = std::abs(-G3 + 2*G5 - G7) + std::abs(A3 - A7);
@@ -148,7 +154,8 @@ void PopulateParallel(Image<T,idxT>& image){
                 else
                     C5 = (2*(A1 + A3 + A7 + A9) + (-G1 - G3 + 4*G5 - G7 - G9)) / 8;
 
-                imgAcc[i][j][0] = C5;
+                
+                imgAcc[i][j][0] = std::clamp<T>(C5,0,UCHAR_MAX);
 
             });
         });
@@ -160,7 +167,7 @@ void PopulateParallel(Image<T,idxT>& image){
         Q.submit([&](handler& h){
             accessor<T,3> imgAcc(imgBuffer,h,read_write);
 
-            h.parallel_for(range<2>{(height-2)/2,(width-2)/2},[=](id<2> idx){
+            h.parallel_for(range<2>{height/2-1,width/2-1},[=](id<2> idx){
                 
                 idxT i = 2*idx[0]+1;
                 idxT j = 2*idx[1]+2;
@@ -183,14 +190,14 @@ void PopulateParallel(Image<T,idxT>& image){
                 //horizontal neighbours
                 T A2 = (A1 + A3 - G1 + 2*G2 - G3) / 2;
                 T A8 = (A7 + A9 - G7 + 2*G8 - G9) / 2;
-                imgAcc[i-1][j][2] = A2;
-                imgAcc[i+1][j][2] = A8;
+                imgAcc[i-1][j][2] = std::clamp<T>(A2,0,UCHAR_MAX);
+                imgAcc[i+1][j][2] = std::clamp<T>(A8,0,UCHAR_MAX);
 
                 //vertical neighbours
                 T A4 = (A1 + A7 -G1 + 2*G4 - G7) / 2;
                 T A6 = (A3 + A9 - G3 + 2*G6 - G9) / 2;
-                imgAcc[i][j-1][2] = A4;
-                imgAcc[i][j+1][2] = A6;
+                imgAcc[i][j-1][2] = std::clamp<T>(A4,0,UCHAR_MAX);
+                imgAcc[i][j+1][2] = std::clamp<T>(A6,0,UCHAR_MAX);
 
                 //diagonal neighbours
                 T alpha = std::abs(-G3 + 2*G5 - G7) + std::abs(A3 - A7);
@@ -205,16 +212,16 @@ void PopulateParallel(Image<T,idxT>& image){
                 else
                     C5 = (2*(A1 + A3 + A7 + A9) + (-G1 - G3 + 4*G5 - G7 - G9)) / 8;
 
-                imgAcc[i][j][2] = C5;
+                
+                imgAcc[i][j][2] = std::clamp<T>(C5,0,UCHAR_MAX);
+    
             });
         });
         
         Q.wait();
         
     }
-       
-
-
+    
 }
 
 
@@ -222,6 +229,7 @@ int main(){
     //Demosaicing Created Shape Image
     Image<short> RAWShapeImage("../assets/Shapes/RAWshapes.ppm");
     PopulateParallel<short,uint32_t>(RAWShapeImage);
+    
 
     Image<short> SerialShapeImage = {"../assets/Shapes/SerialDemosaicedShapes.ppm"};
     
@@ -239,7 +247,6 @@ int main(){
     RAWShapeImage.writeImage("../assets/Shapes/SYCLDemosaicedShapes.ppm");
 
 
-        
     //Demosaicing Landscape of Monschau
     Image<short,uint32_t> RAWMonschauImage("../assets/Landscape/RAWMonschau.ppm");
     PopulateParallel<short,uint32_t>(RAWMonschauImage);
@@ -255,6 +262,7 @@ int main(){
 
     diff2.writeImage("../assets/Landscape/diff.ppm");
     RAWMonschauImage.writeImage("../assets/Landscape/SYCLDemosaicedMonschau.ppm");
+    
     
     return 0;
 }

@@ -2,6 +2,7 @@
 #include "image.hpp"
 #include "SerialKernels.hpp"
 
+
 using namespace std;
 int main() {
 

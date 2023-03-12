@@ -1,5 +1,7 @@
 build/
-assets/
+assets/Landscape/*
+!assets/Landscape/Monschau.jpg
+assets/Shapes/*
 /src/sycl_main
 .vscode/
 /python/.ipynb*

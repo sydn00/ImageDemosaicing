@@ -126,6 +126,18 @@ Folder **python** is used to store testimages.ipynb file to create image and con
 
 All image outputs are stored in **assets** folder.
 
+## Installation Flow of Necessary Libraries and OpenSYCL compiler
+**Operating System**  -> Ubuntu 20.04 LTS
+1. Installing libgtk2.0-dev (required for opencv)
+2. Installing [opencv](https://github.com/opencv/opencv) 
+3. Installing [boost](https://www.boost.org/) (required for OpenSYCL)
+4. Installing [NVIDIA Hpc Toolkit 23.1](https://developer.nvidia.com/hpc-sdk)  and adding necassary environment variables
+5. Installing [OpenSYCL](https://github.com/OpenSYCL/OpenSYCL/blob/develop/doc/installing.md) with following cmake variables:
+   * **NVCXX_COMPILER=/opt/nvidia/hpc_sdk/Linux_x86_64/23.1/compilers/bin/nvc++**
+   * **CUDA_TOOLKIT_ROOT_DIR=/opt/nvidia/hpc_sdk/Linux_x86_64/23.1/cuda**
+   * **WITH_CUDA_NVCXX_ONLY=ON**  (to install without llvm+clang backend)
+6. Modifying /usr/local/etc/hipSYCL/syclcc.json file for gpu arch, nvc++ location etc.
+
 ## Compilation models and Requirements
 Proper SYCL compilers and OpenCV libraries has to be installed before build the script. Since cmake dependencies hasn't been prepared yet serial and SYCL code has to be compiled separately. Compilation of SYCL with hipSYCL(OpenSYCL) implementation can be done with ***nvc++, openmp, clang*** backends;
 
@@ -142,10 +154,23 @@ Proper SYCL compilers and OpenCV libraries has to be installed before build the 
 Serial part can be compiled with cmake;
 
 ***
-cmake . -B build --fresh --warn-uninitialized -DCMAKE_BUILD_TYPE=Debug
-cmake --build build
-./build/main
+- cmake --build build
 
-cmake . -B build --fresh --warn-uninitialized -DCMAKE_BUILD_TYPE=Debug && cmake --build build && ./build/main
+- cmake . -B build --fresh --warn-uninitialized -DCMAKE_BUILD_TYPE=Debug 
+
+
+- cmake . -B build --fresh --warn-uninitialized -DCMAKE_BUILD_TYPE=Debug && cmake --build build
 ***
 
+
+
+## Running the Application
+1. RAW images has to be generated first with python3 with PIL library.  
+   Run testimages.ipynb
+
+2. Serial part has to be run first  
+   Create build folder , build with cmake then run ./main
+
+3. SYCL part can be run now  
+   Follow SYCL-part compilation-flow and run ./syclmain
+    
