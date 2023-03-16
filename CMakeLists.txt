@@ -14,14 +14,15 @@ else()
     add_link_options(-fsanitize=address)
 endif()
 
+include_directories(${CMAKE_SOURCE_DIR}/include)
 
 #OpenCV 4.7.0 (older versions hasn't been tested)
 find_package(OpenCV 4.7.0 REQUIRED COMPONENTS opencv_imgcodecs opencv_highgui opencv_core)
 
 include_directories(${OpenCV_INCLUDE_DIRS})
 #executable for serial-part
-add_executable(main src/main.cpp src/image.hpp src/SerialKernels.hpp)
-target_link_libraries(main PUBLIC ${OpenCV_LIBS})
+add_executable(serial src/Serialmain.cpp)
+target_link_libraries(serial PUBLIC ${OpenCV_LIBS})
 
 
 

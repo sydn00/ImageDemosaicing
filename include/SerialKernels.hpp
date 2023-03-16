@@ -225,8 +225,8 @@ void populateRed(Image<T,idxT>& image){
             T A7 = image(2,i+1,j-1);
             T A9 = image(2,i+1,j+1);
 
-            T alpha = std::abs(-G3 + 2*G5 - G7);
-            T beta = std::abs(-G1 + 2*G5 - G9);
+            T alpha = std::abs(-G3 + 2*G5 - G7) + std::abs(A3 - A7);
+            T beta = std::abs(-G1 + 2*G5 - G9) + std::abs(A1 - A9);
 
             T C5;
             if(alpha<beta)

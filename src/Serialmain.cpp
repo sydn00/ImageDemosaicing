@@ -1,6 +1,6 @@
 #include <iostream>
-#include "image.hpp"
-#include "SerialKernels.hpp"
+#include <image.hpp>
+#include <SerialKernels.hpp>
 
 
 using namespace std;
