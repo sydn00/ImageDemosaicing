@@ -26,7 +26,7 @@ void populateGreen(Image<T,idxT>& image){
 
     //calculating red pixel's green color
     for(idxT i=2;i<height-2;i+=2){
-        for(idxT j=3;j<width-2;j+=2){
+        for(idxT j=3;j<width-1;j+=2){
 
             //red colors
             A1 = image(2,i-2,j);
@@ -59,7 +59,7 @@ void populateGreen(Image<T,idxT>& image){
 
 
     //calculating blue pixel's green color
-    for(idxT i=3;i<height-2;i+=2){
+    for(idxT i=3;i<height-1;i+=2){
         for(idxT j=2;j<width-2;j+=2){
 
             //blue colors
@@ -135,8 +135,8 @@ void populateBlue(Image<T,idxT>& image){
     }
 
     //diagonal neighbours
-    for(idxT i=2;i<height-1;i+=2){
-        for(idxT j=1;j<width-2;j+=2){
+    for(idxT i=2;i<height;i+=2){
+        for(idxT j=1;j<width-1;j+=2){
             //blue colors
             T A1 = image(0,i-1,j-1);
             T A3 = image(0,i-1,j+1);
@@ -178,7 +178,7 @@ void populateRed(Image<T,idxT>& image){
 
     //horizontal neighbours
     for(idxT i=0;i<height;i+=2){
-        for(idxT j=2;j<width-1;j+=2){
+        for(idxT j=2;j<width;j+=2){
             //red values
             T A1 = image(2,i,j-1);
             T A3 = image(2,i,j+1);
@@ -194,7 +194,7 @@ void populateRed(Image<T,idxT>& image){
     }
 
     //vertical neighbours  
-    for(idxT i=1;i<height-2;i+=2){
+    for(idxT i=1;i<height-1;i+=2){
         for(idxT j=1;j<width;j+=2){
             //red values
             T A1 = image(2,i-1,j);
@@ -211,8 +211,8 @@ void populateRed(Image<T,idxT>& image){
     }
 
     //diagonal neighbours
-    for(idxT i=1;i<height-2;i+=2){
-        for(idxT j=2;j<width-1;j+=2){
+    for(idxT i=1;i<height-1;i+=2){
+        for(idxT j=2;j<width;j+=2){
             //green colors
             T G1 = image(1,i-1,j-1);
             T G3 = image(1,i-1,j+1);

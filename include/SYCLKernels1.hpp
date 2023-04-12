@@ -1,14 +1,7 @@
-#include "../include/image.hpp"
-#include <CL/sycl.hpp>
-#include <iostream>
-#include <algorithm>
-#include <limits>
-#include <limits.h>
-
 /*Demosaicing SYCL Algorithm 1  
 
 6x8 Image Demonstration for G R, B G Bayer CFA pattern (- = data, + = threadIdx ) 
-First event = Populating Green (Each threads calculates only the green it stays on)
+GreenEvent = Populating Green (Each threads calculates only the green it stays on)
 - - - - - - - -
 - - - - - - - -
 - - - + - + - -
@@ -16,7 +9,7 @@ First event = Populating Green (Each threads calculates only the green it stays 
 - - - + - + - -
 - - - - - - - -
 
-Second event = Populating Blue (Each thread calculates horizontal, vertical, diagonal neighbors of 3*3 data set)
+BlueEvent = Populating Blue (Each thread calculates horizontal, vertical, diagonal neighbors of 3*3 data set)
 - - - - - - - -
 - - - - - - - -
 - + - + - + - -
@@ -24,7 +17,7 @@ Second event = Populating Blue (Each thread calculates horizontal, vertical, dia
 - + - + - + - -
 - - - - - - - -
 
-Third event = Populating Red (Each thread calculates horizontal, vertical, diagonal neighbors of 3*3 data set)
+RedEvent = Populating Red (Each thread calculates horizontal, vertical, diagonal neighbors of 3*3 data set)
 - - - - - - - -
 - - + - + - + -
 - - - - - - - -
@@ -41,20 +34,24 @@ Third event = Populating Red (Each thread calculates horizontal, vertical, diago
 
     - queue object(Q) defined in_order so that each event will run synchronously.
 */
+
+
+#include "../include/image.hpp"
+#include <CL/sycl.hpp>
+#include <iostream>
+#include <algorithm>
+#include <limits>
+#include <limits.h>
+
 using namespace hipsycl::sycl;
 using namespace cv;
 
 template <typename T, typename idxT=unsigned int>
 void PopulateParallel1(Image<T,idxT>& image){
-    host_selector host;
-    cpu_selector cpu;
     gpu_selector gpu;                
     queue Q(gpu,property::queue::in_order());                   
 
-    std::cout << "Selected device is: " <<
-    Q.get_device().get_info<info::device::name>() << "\n";    
-
-    idxT height = image.getHeight();
+        idxT height = image.getHeight();
     idxT width = image.getWidth();
     {
         buffer<T,3> imgBuffer {image.getPointer(),range<3>(image.getHeight(),image.getWidth(),3),{property::buffer::use_host_ptr{}}};

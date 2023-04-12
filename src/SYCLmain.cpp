@@ -1,5 +1,10 @@
 #include "../include/SYCLKernels1.hpp"
 #include "../include/SYCLKernels2.hpp"
+#include "../include/SYCLKernels3.hpp"
+#include "../include/SYCLKernels4.hpp"
+#include <chrono>
+
+
 
 
 /*
@@ -7,84 +12,64 @@ compilation
 syclcc -o sycl SYCLmain.cpp -O3 --opensycl-targets="cuda-nvcxx::ccnative" -l opencv_imgcodecs -l opencv_core -l opencv_highgui
 */
 
-int main(){
-
-    //-----------------SYCLKernels1---------------------
+// Takes demosaiced images and write diff image (serial-sycl image) and output image to the specified directory.
+// Postfix has to be match with the demosaiced kernel. (ie. diff1.ppm for kernels1, diff2.ppm for kernels2) 
+template <typename T, typename idxT=unsigned int>
+void GenerateImages(Image<T,idxT>& ShapeImg,Image<T,idxT>& MonschauImg,std::string postfix){
+    //Shape Image
     
+    Image<short> SerialShapeImage = {"../assets/Shapes/SerialDemosaicedShapes.ppm"};
+    
+    ShapeImg.isEqual(SerialShapeImage);
+ 
+    Image<short> diff(ShapeImg.getHeight(),ShapeImg.getWidth());
+    ShapeImg.diff(SerialShapeImage,diff);
+
+    std::string diffShape = "../assets/Shapes/diff" + postfix + ".ppm";
+    diff.writeImage(diffShape);
+
+    std::string writeShape = "../assets/Shapes/SYCLDemosaicedShapes" + postfix + ".ppm";
+    ShapeImg.writeImage(writeShape);
+    
+
+    //Landscape of Monschau Image
+    Image<short> SerialMonschauImage = {"../assets/Landscape/SerialDemosaicedMonschau.ppm"};
+    
+    SerialMonschauImage.isEqual(MonschauImg);
+ 
+    Image<short> diffM(MonschauImg.getHeight(),MonschauImg.getWidth());
+    MonschauImg.diff(SerialMonschauImage,diffM);
+
+    std::string diffMonschau = "../assets/Landscape/diff" + postfix + ".ppm";
+    diffM.writeImage(diffMonschau);
+
+    std::string writeMonschau = "../assets/Landscape/SYCLDemosaicedMonschau" + postfix + ".ppm";
+    MonschauImg.writeImage(writeMonschau);
+}
+
+
+
+int main(){
     /*
     //Demosaicing Created Shape Image
     Image<short> RAWShapeImage("../assets/Shapes/RAWshapes.ppm");
-    PopulateParallel1<short,uint32_t>(RAWShapeImage);
-    
-
-    Image<short> SerialShapeImage = {"../assets/Shapes/SerialDemosaicedShapes.ppm"};
-    
-    RAWShapeImage.isEqual(SerialShapeImage);
- 
-    uint32_t height=RAWShapeImage.getHeight();
-    uint32_t width=RAWShapeImage.getWidth();
-
-    Image<short,uint32_t> diff(height,width);
-    RAWShapeImage.diff(SerialShapeImage,diff);
-
-    diff.writeImage("../assets/Shapes/diff1.ppm");
-    RAWShapeImage.writeImage("../assets/Shapes/SYCLDemosaicedShapes1.ppm");
-
-
-    //Demosaicing Landscape of Monschau
-    Image<short,uint32_t> RAWMonschauImage("../assets/Landscape/RAWMonschau.ppm");
-    PopulateParallel1<short,uint32_t>(RAWMonschauImage);
-
-    Image<short,uint32_t> SerialMonschauImage = {"../assets/Landscape/SerialDemosaicedMonschau.ppm"};
-    
-    SerialMonschauImage.isEqual(SerialShapeImage);
-    uint32_t h = SerialMonschauImage.getHeight();
-    uint32_t w = SerialMonschauImage.getWidth();
-
-    Image<short,uint32_t> diffM(h,w);
-    RAWMonschauImage.diff(SerialMonschauImage,diffM);
-
-    diffM.writeImage("../assets/Landscape/diff1.ppm");
-    RAWMonschauImage.writeImage("../assets/Landscape/SYCLDemosaicedMonschau1.ppm");
-    
+    auto t1 = std::chrono::high_resolution_clock::now();
+    PopulateParallel4<short>(RAWShapeImage);
+    auto t2 = std::chrono::high_resolution_clock::now();
+    std::cout << "RAW shapes = " << std::chrono::duration_cast<std::chrono::milliseconds>(t2-t1).count() << " miliseconds\n";
     */
-    
 
-
-    //-----------------SYCLKernels2---------------------
-    //Demosaicing Created Shape Image
-    Image<short> RAWShapeImage("../assets/Shapes/RAWshapes.ppm");
-    PopulateParallel2<short,uint32_t>(RAWShapeImage);
-    
-
-    Image<short> SerialShapeImage = {"../assets/Shapes/SerialDemosaicedShapes.ppm"};
-    
-    RAWShapeImage.isEqual(SerialShapeImage);
- 
-    uint32_t height=RAWShapeImage.getHeight();
-    uint32_t width=RAWShapeImage.getWidth();
-
-    Image<short,uint32_t> diff(height,width);
-    RAWShapeImage.diff(SerialShapeImage,diff);
-
-    diff.writeImage("../assets/Shapes/diff2.ppm");
-    RAWShapeImage.writeImage("../assets/Shapes/SYCLDemosaicedShapes2.ppm");
-
-
-    //Demosaicing Landscape of Monschau
+    //Demosaicing Landscape Monschau
     Image<short,uint32_t> RAWMonschauImage("../assets/Landscape/RAWMonschau.ppm");
-    PopulateParallel2<short,uint32_t>(RAWMonschauImage);
+    auto t3 = std::chrono::high_resolution_clock::now();
+    for(size_t i=0;i<30;++i){
+        PopulateParallel4<short>(RAWMonschauImage);
+    }
+    auto t4 = std::chrono::high_resolution_clock::now();
+    std::cout << "Monschau = " << std::chrono::duration_cast<std::chrono::milliseconds>(t4-t3).count() << " miliseconds\n";
 
-    Image<short,uint32_t> SerialMonschauImage = {"../assets/Landscape/SerialDemosaicedMonschau.ppm"};
     
-    SerialMonschauImage.isEqual(SerialShapeImage);
-    uint32_t h = SerialMonschauImage.getHeight();
-    uint32_t w = SerialMonschauImage.getWidth();
+    //GenerateImages<short>(RAWShapeImage,RAWMonschauImage,"4");
 
-    Image<short,uint32_t> diffM(h,w);
-    RAWMonschauImage.diff(SerialMonschauImage,diffM);
-
-    diffM.writeImage("../assets/Landscape/diff2.ppm");
-    RAWMonschauImage.writeImage("../assets/Landscape/SYCLDemosaicedMonschau2.ppm");
     return 0;
 }

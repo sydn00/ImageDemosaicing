@@ -1,10 +1,3 @@
-#include "../include/image.hpp"
-#include <CL/sycl.hpp>
-#include <iostream>
-#include <algorithm>
-#include <limits>
-#include <limits.h>
-
 /*Demosaicing SYCL Algorithm 2
 
 6x8 Image Demonstration for G R, B G Bayer CFA pattern (- = data, + = threadIdx ) 
@@ -16,7 +9,7 @@ First event = Populating Green (Each threads calculates only the green it stays 
 - - - + - + - -
 - - - - - - - -
 
-Second event = Populating Blue for horizontal neighbours (Each threads calculates only the blue it stays on)
+BlueHorizontalEvent = Populating Blue for horizontal neighbours (Each threads calculates only the blue it stays on)
 - - - - - - - -
 - + - + - + - -
 - - - - - - - -
@@ -24,7 +17,7 @@ Second event = Populating Blue for horizontal neighbours (Each threads calculate
 - - - - - - - -
 - + - + - + - -
 
-Third event = Populating Blue for vertical neigbours (Each threads calculates only the blue it stays on)
+BlueVerticalEvent = Populating Blue for vertical neigbours (Each threads calculates only the blue it stays on)
 - - - - - - - -
 - - - - - - - -
 + - + - + - + -
@@ -32,7 +25,7 @@ Third event = Populating Blue for vertical neigbours (Each threads calculates on
 + - + - + - + -
 - - - - - - - -
 
-Fourth event = Populating Blue for diagonal neigbours (Each threads calculates only the blue it stays on)
+BlueDiagonalEvent event = Populating Blue for diagonal neigbours (Each threads calculates only the blue it stays on)
 - - - - - - - -
 - - - - - - - -
 - + - + - + - -
@@ -40,7 +33,7 @@ Fourth event = Populating Blue for diagonal neigbours (Each threads calculates o
 - + - + - + - -
 - - - - - - - -
 
-Fifth event = Populating Red for horizontal neighbours (Each threads calculates only the red it stays on)
+RedHorizontalEvent event = Populating Red for horizontal neighbours (Each threads calculates only the red it stays on)
 - - + - + - + -
 - - - - - - - -
 - - + - + - + -
@@ -48,7 +41,7 @@ Fifth event = Populating Red for horizontal neighbours (Each threads calculates 
 - - + - + - + -
 - - - - - - - -
 
-Sixth event = Populating Red for vertical neighbours (Each threads calculates only the red it stays on)
+RedVerticalEvent = Populating Red for vertical neighbours (Each threads calculates only the red it stays on)
 - - - - - - - -
 - + - + - + - +
 - - - - - - - -
@@ -56,7 +49,7 @@ Sixth event = Populating Red for vertical neighbours (Each threads calculates on
 - - - - - - - -
 - - - - - - - -
 
-Seventh event = Populating Red for diagonal neighbours (Each threads calculates only the red it stays on)
+RedDiagonalEvent event = Populating Red for diagonal neighbours (Each threads calculates only the red it stays on)
 - - - - - - - -
 - - + - + - + -
 - - - - - - - -
@@ -65,26 +58,29 @@ Seventh event = Populating Red for diagonal neighbours (Each threads calculates 
 - - - - - - - -
 
 
-queue object(Q) defined out_of_order so that each event will run asynchronously. Since the 2..7 events depend on the first
-event explicit barriers are placed but still there are implicit dependences with accessors. So that each event run synchronously.
-
-
+    Code Notes
+    - queue object(Q) implicitly defined out_of_order so that each event execution expected asynchronously.
+    - Since the 2..7 events depend on the first event explicit barriers are placed but still there are implicit dependences because accessors access the same buffer. So that each event will run synchronously.
+    - Each population could have been done in one event to fix that issue in next algorithm. (Multiple parallel_for in one command group) but it
+      is not sycl conformant so it is also avoided after try.)
+    - For next kernel, single event will be used  
 
 */
 
+#include "../include/image.hpp"
+#include <CL/sycl.hpp>
+#include <iostream>
+#include <algorithm>
+#include <limits>
+#include <limits.h>
 
 using namespace hipsycl::sycl;
 using namespace cv;
 
 template <typename T, typename idxT=unsigned int>
 void PopulateParallel2(Image<T,idxT>& image){
-    host_selector host;
-    cpu_selector cpu;
     gpu_selector gpu;                
     queue Q(gpu);                    //out-of-order queue
-
-    std::cout << "Selected device is: " <<
-    Q.get_device().get_info<info::device::name>() << "\n";    
 
     idxT height = image.getHeight();
     idxT width = image.getWidth();
@@ -376,7 +372,7 @@ void PopulateParallel2(Image<T,idxT>& image){
                     C5 = (A3 + A7 -G3 +2*G5 - G7) / 2;
                 else if(alpha>beta)
                     C5 = (A1 + A9 -G1 +2*G5 - G9) / 2;
-                else if(alpha==beta)
+                else if(alpha==beta)//Q.wait();
                     C5 = (2*(A1 + A3 + A7 + A9) - G1 - G3 +4*G5 - G7 - G9) / 8;
 
 
