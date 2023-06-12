@@ -20,18 +20,19 @@ int main() {
     */
 
     //Demosaicing Landscape Image
-    Image<short> RAWMonschau("../assets/Landscape/RAWMonschau.ppm");
+    Image<uint8_t> RAWMonschau("../assets/Landscape/RAWMonschau.ppm");
 
     auto t3 = std::chrono::high_resolution_clock::now();
-    for(size_t i=0;i<30;++i){
-    populateGreen<short>(RAWMonschau);
-    populateBlue<short>(RAWMonschau);
-    populateRed<short>(RAWMonschau);
+    for(int i=0;i<30;++i){
+    populateGreen<uint8_t>(RAWMonschau);
+    populateBlue<uint8_t>(RAWMonschau);
+    populateRed<uint8_t>(RAWMonschau);
     }
+    
     auto t4 = std::chrono::high_resolution_clock::now();
-    /*
-    RAWMonschau.writeImage("../assets/Landscape/SerialDemosaicedMonschau.ppm");
-    */
+    
+    //RAWMonschau.writeImage("../assets/Landscape/SerialDemosaicedMonschau.ppm");
+    
 
     //std::cout << "RAW shapes = " << std::chrono::duration_cast<std::chrono::milliseconds>(t2-t1).count() << " miliseconds\n";
     std::cout << "Monschau = " << std::chrono::duration_cast<std::chrono::milliseconds>(t4-t3).count() << " miliseconds\n";

@@ -19,13 +19,10 @@ class Image {
         Image(std::string imagePath){
             cv::Mat src = cv::imread(imagePath);
             cv::Mat dst;
-            copyMakeBorder( src, dst, 2, 2, 2, 2, cv::BORDER_REFLECT101, 0 );
-
-
+            copyMakeBorder(src, dst, 2, 2, 2, 2, cv::BORDER_REFLECT101, 0);
 
             height = (idxT)dst.rows;
             width = (idxT)dst.cols;
-
 
             data = new T[height*width*3];
 
@@ -82,7 +79,7 @@ class Image {
         }
 
         
-        //Color ====>   0->Blue 1->Green 2->Red (can be enum)
+        //Color ====>   0->Blue 1->Green 2->Red 
         T& operator()(uchar Color, idxT i, idxT j){
             assert(Color<3 && i<height && j<width );
             if(Color==0)
@@ -131,6 +128,7 @@ class Image {
                     }
                 }
             }
+            std::cout << "Images are same" << std::endl;
             return true;
         }
         //abs(src - other) = dst

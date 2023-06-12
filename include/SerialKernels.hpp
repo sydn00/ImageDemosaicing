@@ -13,15 +13,16 @@
 
 
 //1th run -> populating luminance(green) channel
-template <typename T, typename idxT=unsigned int>
+//T -> image type, LT -> local type
+template <typename T, typename LT=int16_t, typename idxT=unsigned int>
 void populateGreen(Image<T,idxT>& image){
     idxT height = image.getHeight();
     idxT width = image.getWidth();
 
-    T alpha = 0, beta = 0;
-    T A1, A3, A5, A7, A9;
-    T G2, G4, G6, G8;
-    T G5;
+    LT alpha = 0, beta = 0;
+    LT A1, A3, A5, A7, A9;
+    LT G2, G4, G6, G8;
+    LT G5;
 
 
     //calculating red pixel's green color
@@ -52,7 +53,7 @@ void populateGreen(Image<T,idxT>& image){
             else if(alpha == beta)
                 G5 = (2*(G2 + G4 + G6 + G8) - A1 - A3 + 4*A5 - A7 - A9)/8;
             
-            image(1,i,j) = std::clamp<T>(G5,0,UCHAR_MAX);
+            image(1,i,j) = std::clamp<LT>(G5,0,UCHAR_MAX);
             
         }
     }
@@ -85,7 +86,7 @@ void populateGreen(Image<T,idxT>& image){
             else if(alpha == beta)
                 G5 = (2*(G2 + G4 + G6 + G8) - A1 - A3 + 4*A5 - A7 - A9)/8;
             
-            image(1,i,j) = std::clamp<T>(G5,0,UCHAR_MAX);
+            image(1,i,j) = std::clamp<LT>(G5,0,UCHAR_MAX);
             
         }
     }
@@ -95,7 +96,8 @@ void populateGreen(Image<T,idxT>& image){
 
 
 //2nd run -> populating chrominance(blue) channel
-template <typename T, typename idxT=unsigned int>
+//T -> image type, LT -> local type
+template <typename T, typename LT=int16_t, typename idxT=unsigned int>
 void populateBlue(Image<T,idxT>& image){
     idxT height = image.getHeight();
     idxT width = image.getWidth();
@@ -104,16 +106,16 @@ void populateBlue(Image<T,idxT>& image){
     for(idxT i=1;i<height;i+=2){
         for(idxT j=1;j<width-1;j+=2){
             //blue values
-            T A1 = image(0,i,j-1);
-            T A3 = image(0,i,j+1);
+            LT A1 = image(0,i,j-1);
+            LT A3 = image(0,i,j+1);
             //green values
-            T G1 = image(1,i,j-1);
-            T G2 = image(1,i,j);
-            T G3 = image(1,i,j+1);
+            LT G1 = image(1,i,j-1);
+            LT G2 = image(1,i,j);
+            LT G3 = image(1,i,j+1);
             
-            T A2 = (A1 + A3 - G1 + 2*G2 - G3) / 2;
+            LT A2 = (A1 + A3 - G1 + 2*G2 - G3) / 2;
 
-            image(0,i,j) = std::clamp<T>(A2,0,UCHAR_MAX);
+            image(0,i,j) = std::clamp<LT>(A2,0,UCHAR_MAX);
         }
     }
 
@@ -121,16 +123,16 @@ void populateBlue(Image<T,idxT>& image){
     for(idxT i=2;i<height-1;i+=2){
         for(idxT j=0;j<width-1;j+=2){
             //blue values
-            T A1 = image(0,i-1,j);
-            T A7 = image(0,i+1,j);
+            LT A1 = image(0,i-1,j);
+            LT A7 = image(0,i+1,j);
             //green values
-            T G1 = image(1,i-1,j);
-            T G4 = image(1,i,j);
-            T G7 = image(1,i+1,j);
+            LT G1 = image(1,i-1,j);
+            LT G4 = image(1,i,j);
+            LT G7 = image(1,i+1,j);
 
-            T A4 = (A1 + A7 - G1 + 2*G4 -G7) / 2;
+            LT A4 = (A1 + A7 - G1 + 2*G4 -G7) / 2;
 
-            image(0,i,j) = std::clamp<T>(A4,0,UCHAR_MAX);
+            image(0,i,j) = std::clamp<LT>(A4,0,UCHAR_MAX);
         }
     }
 
@@ -138,22 +140,22 @@ void populateBlue(Image<T,idxT>& image){
     for(idxT i=2;i<height;i+=2){
         for(idxT j=1;j<width-1;j+=2){
             //blue colors
-            T A1 = image(0,i-1,j-1);
-            T A3 = image(0,i-1,j+1);
-            T A7 = image(0,i+1,j-1);
-            T A9 = image(0,i+1,j+1);
+            LT A1 = image(0,i-1,j-1);
+            LT A3 = image(0,i-1,j+1);
+            LT A7 = image(0,i+1,j-1);
+            LT A9 = image(0,i+1,j+1);
 
             //green colors
-            T G1 = image(1,i-1,j-1);
-            T G3 = image(1,i-1,j+1);
-            T G5 = image(1,i,j);
-            T G7 = image(1,i+1,j-1);
-            T G9 = image(1,i+1,j+1);
+            LT G1 = image(1,i-1,j-1);
+            LT G3 = image(1,i-1,j+1);
+            LT G5 = image(1,i,j);
+            LT G7 = image(1,i+1,j-1);
+            LT G9 = image(1,i+1,j+1);
 
-            T alpha = std::abs(-G3 + 2*G5 - G7) + std::abs(A3 - A7);
-            T beta = std::abs(-G1 + 2*G5 - G9) + std::abs(A1 - A9);
+            LT alpha = std::abs(-G3 + 2*G5 - G7) + std::abs(A3 - A7);
+            LT beta = std::abs(-G1 + 2*G5 - G9) + std::abs(A1 - A9);
 
-            T C5;
+            LT C5;
             if(alpha<beta)
                 C5 = (A3 + A7 - G3 + 2*G5 - G7) / 2;
             if(alpha>beta)
@@ -161,7 +163,7 @@ void populateBlue(Image<T,idxT>& image){
             if(alpha==beta)
                 C5 = (2*(A1 + A3 + A7 + A9) - G1 - G3 + 4*G5 - G7 - G9) / 8;
             
-            image(0,i,j) = std::clamp<T>(C5,0,UCHAR_MAX);
+            image(0,i,j) = std::clamp<LT>(C5,0,UCHAR_MAX);
 
             
         }
@@ -171,7 +173,8 @@ void populateBlue(Image<T,idxT>& image){
 
 
 //3rd run -> populating chrominance(red) channel
-template <typename T, typename idxT=unsigned int>
+//T -> image type, LT -> local type
+template <typename T, typename LT=int16_t, typename idxT=unsigned int>
 void populateRed(Image<T,idxT>& image){
     idxT height = image.getHeight();
     idxT width = image.getWidth();
@@ -180,16 +183,16 @@ void populateRed(Image<T,idxT>& image){
     for(idxT i=0;i<height;i+=2){
         for(idxT j=2;j<width;j+=2){
             //red values
-            T A1 = image(2,i,j-1);
-            T A3 = image(2,i,j+1);
+            LT A1 = image(2,i,j-1);
+            LT A3 = image(2,i,j+1);
             //green values
-            T G1 = image(1,i,j-1);
-            T G2 = image(1,i,j);
-            T G3 = image(1,i,j+1);
+            LT G1 = image(1,i,j-1);
+            LT G2 = image(1,i,j);
+            LT G3 = image(1,i,j+1);
             
-            T A2 = (A1 + A3 - G1 + 2*G2 - G3) / 2;
+            LT A2 = (A1 + A3 - G1 + 2*G2 - G3) / 2;
 
-            image(2,i,j) = std::clamp<T>(A2,0,UCHAR_MAX);
+            image(2,i,j) = std::clamp<LT>(A2,0,UCHAR_MAX);
         }
     }
 
@@ -197,16 +200,16 @@ void populateRed(Image<T,idxT>& image){
     for(idxT i=1;i<height-1;i+=2){
         for(idxT j=1;j<width;j+=2){
             //red values
-            T A1 = image(2,i-1,j);
-            T A7 = image(2,i+1,j);
+            LT A1 = image(2,i-1,j);
+            LT A7 = image(2,i+1,j);
             //green values
-            T G1 = image(1,i-1,j);
-            T G4 = image(1,i,j);
-            T G7 = image(1,i+1,j);
+            LT G1 = image(1,i-1,j);
+            LT G4 = image(1,i,j);
+            LT G7 = image(1,i+1,j);
 
-            T A4 = (A1 + A7 - G1 + 2*G4 -G7) / 2;
+            LT A4 = (A1 + A7 - G1 + 2*G4 -G7) / 2;
 
-            image(2,i,j) = std::clamp<T>(A4,0,UCHAR_MAX);
+            image(2,i,j) = std::clamp<LT>(A4,0,UCHAR_MAX);
         }
     }
 
@@ -214,21 +217,21 @@ void populateRed(Image<T,idxT>& image){
     for(idxT i=1;i<height-1;i+=2){
         for(idxT j=2;j<width;j+=2){
             //green colors
-            T G1 = image(1,i-1,j-1);
-            T G3 = image(1,i-1,j+1);
-            T G5 = image(1,i,j);
-            T G7 = image(1,i+1,j-1);
-            T G9 = image(1,i+1,j+1);
+            LT G1 = image(1,i-1,j-1);
+            LT G3 = image(1,i-1,j+1);
+            LT G5 = image(1,i,j);
+            LT G7 = image(1,i+1,j-1);
+            LT G9 = image(1,i+1,j+1);
             //red colors
-            T A1 = image(2,i-1,j-1);
-            T A3 = image(2,i-1,j+1);
-            T A7 = image(2,i+1,j-1);
-            T A9 = image(2,i+1,j+1);
+            LT A1 = image(2,i-1,j-1);
+            LT A3 = image(2,i-1,j+1);
+            LT A7 = image(2,i+1,j-1);
+            LT A9 = image(2,i+1,j+1);
 
-            T alpha = std::abs(-G3 + 2*G5 - G7) + std::abs(A3 - A7);
-            T beta = std::abs(-G1 + 2*G5 - G9) + std::abs(A1 - A9);
+            LT alpha = std::abs(-G3 + 2*G5 - G7) + std::abs(A3 - A7);
+            LT beta = std::abs(-G1 + 2*G5 - G9) + std::abs(A1 - A9);
 
-            T C5;
+            LT C5;
             if(alpha<beta)
                 C5 = (A3 + A7 - G3 + 2*G5 - G7) / 2;
             if(alpha>beta)
@@ -236,7 +239,7 @@ void populateRed(Image<T,idxT>& image){
             if(alpha==beta)
                 C5 = (2*(A1 + A3 + A7 + A9) - G1 - G3 + 4*G5 - G7 - G9) / 8;
             
-            image(2,i,j) = std::clamp<T>(C5,0,UCHAR_MAX);
+            image(2,i,j) = std::clamp<LT>(C5,0,UCHAR_MAX);
         }
     }
     
