@@ -1,4 +1,4 @@
-/*Demosaicing SYCL Algorithm 4  
+/*Demosaicing Kernel 4  
 
 6x8 Image Demonstration for G R, B G Bayer CFA pattern (- = data, + = threadIdx ) 
 GreenEvent = Populates green, each thread populates green, it stays on
@@ -36,7 +36,7 @@ using namespace cv;
 template <typename T, typename LT=int16_t, typename idxT=unsigned int>
 void PopulateParallel4(Image<T,idxT>& image){
     gpu_selector gpu;                
-    queue Q(gpu,property::queue::in_order());                   
+    queue Q(gpu);                   
 
     idxT height = image.getHeight();
     idxT width = image.getWidth();
@@ -50,7 +50,12 @@ void PopulateParallel4(Image<T,idxT>& image){
         (w/2 -> total thread count in one row, w/2-2 exluding boundaries)  
         */
         
-       event GreenEvent = Q.submit([&](handler& h){
+       
+
+        
+        
+
+        event GreenEvent = Q.submit([&](handler& h){
             accessor<T,3> imgAcc(imgBuffer,h,read_write);
            
             h.parallel_for(range<2>{height/2-2,width/2-2},[=](id<2> idx){
@@ -119,8 +124,6 @@ void PopulateParallel4(Image<T,idxT>& image){
             });
 
         });
-
-
         
         event RedBlueEvent = Q.submit([&](handler& h){
             accessor<T,3> imgAcc(imgBuffer,h,read_write);
@@ -153,7 +156,6 @@ void PopulateParallel4(Image<T,idxT>& image){
                 A4 = (A1 + A7 - G1 + 2*G4 - G7) / 2;
 
                 imgAcc[i][j][0] = std::clamp<LT>(A4,0,UCHAR_MAX);
-
 
                 //Horizontal Neighbour (red color)
                 //red colors

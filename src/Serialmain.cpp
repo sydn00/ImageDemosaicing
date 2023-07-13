@@ -3,37 +3,16 @@
 #include <SerialKernels.hpp>
 #include <chrono>
 
-
+#define N 3
 using namespace std;
 int main() {
-    /*
-    //Demosaicing Shape Image
-    Image<short> RAWshapes("../assets/Shapes/RAWshapes.ppm");
+    Image<uchar> img {"../assets/Landscape/DemosaicedRAWMonschau.ppm"};
 
-    auto t1 = std::chrono::high_resolution_clock::now();
-    populateGreen<short>(RAWshapes);
-    populateBlue<short>(RAWshapes);
-    populateRed<short>(RAWshapes);
-    auto t2 = std::chrono::high_resolution_clock::now();
+    populateGreen<uchar,short>(img);
+    populateBlue<uchar,short>(img);
+    populateRed<uchar,short>(img);
 
-    RAWshapes.writeImage("../assets/Shapes/SerialDemosaicedShapes.ppm");
-    */
+    img.showImage();
 
-    //Demosaicing Landscape Image
-    Image<uint8_t> RAWMonschau("../assets/Landscape/RAWMonschau.ppm");
-
-    auto t3 = std::chrono::high_resolution_clock::now();
-    for(int i=0;i<30;++i){
-    populateGreen<uint8_t>(RAWMonschau);
-    populateBlue<uint8_t>(RAWMonschau);
-    populateRed<uint8_t>(RAWMonschau);
-    }
-    
-    auto t4 = std::chrono::high_resolution_clock::now();
-    
-    //RAWMonschau.writeImage("../assets/Landscape/SerialDemosaicedMonschau.ppm");
-    
-
-    //std::cout << "RAW shapes = " << std::chrono::duration_cast<std::chrono::milliseconds>(t2-t1).count() << " miliseconds\n";
-    std::cout << "Monschau = " << std::chrono::duration_cast<std::chrono::milliseconds>(t4-t3).count() << " miliseconds\n";
+    return 0;
 }

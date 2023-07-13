@@ -1,7 +1,9 @@
 #pragma once
 #include <iostream>
+#include <vector>
 #include <cassert>
 #include <string>
+#include <chrono>
 #include <opencv2/opencv.hpp>
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/highgui.hpp>
@@ -16,10 +18,28 @@ class Image {
             height(height), width(width),
             data(new T[height * width * 3]) {}
 
+
+        Image(cv::Mat matrix){
+            height = matrix.rows;
+            width = matrix.cols;
+
+            data = new T[height * width * 3];
+            uchar* ptr = matrix.data;
+            for(idxT i=0;i<height*width*3;++i){
+                data[i] = ptr[i];
+            }
+        }
+
         Image(std::string imagePath){
+            auto t0 = std::chrono::high_resolution_clock::now();
             cv::Mat src = cv::imread(imagePath);
             cv::Mat dst;
+            auto t1 = std::chrono::high_resolution_clock::now();
             copyMakeBorder(src, dst, 2, 2, 2, 2, cv::BORDER_REFLECT101, 0);
+            auto t2 = std::chrono::high_resolution_clock::now();
+
+            std::cout << "Image tranfer from harddrive to main memory took: = " << std::chrono::duration_cast<std::chrono::milliseconds>(t1-t0).count() << " miliseconds\n";
+            std::cout << "Border creation took: = " << std::chrono::duration_cast<std::chrono::milliseconds>(t2-t1).count() << " miliseconds\n";
 
             height = (idxT)dst.rows;
             width = (idxT)dst.cols;
@@ -37,6 +57,46 @@ class Image {
                 new T[height * width * 3]:nullptr) {
             for (idxT i=0; i<height*width*3; ++i) {
                 data[i] = other.data[i];
+            }
+        }
+        //gray-scale read (1byte per pixel)
+        Image(std::string imagePath, bool is_grayscale){
+            cv::Mat gray = cv::imread(imagePath);
+
+            idxT h = gray.rows;
+            idxT w = gray.cols;
+            cv::Mat colored(h, w, CV_8UC3, cv::Scalar(0,0,0));
+
+            //RG to GR
+            for(idxT i=0; i<h; i+=2){
+                for(idxT j=0; j<w; j+=2){
+                        colored.at<cv::Vec3b>(i,j)[2] = gray.at<cv::Vec3b>(i,j)[0];
+                        T red = colored.at<cv::Vec3b>(i,j)[2];   colored.at<cv::Vec3b>(i,j)[2]=0;
+                        colored.at<cv::Vec3b>(i,j+1)[1] = gray.at<cv::Vec3b>(i,j+1)[0];
+                        T g1 = colored.at<cv::Vec3b>(i,j+1)[1];  colored.at<cv::Vec3b>(i,j+1)[1]=0;
+                        colored.at<cv::Vec3b>(i+1,j)[1] = gray.at<cv::Vec3b>(i+1,j)[0];
+                        T g2 = colored.at<cv::Vec3b>(i+1,j)[1];  colored.at<cv::Vec3b>(i+1,j)[1]=0;
+                        colored.at<cv::Vec3b>(i+1,j+1)[0] = gray.at<cv::Vec3b>(i,j)[0];
+                        T blue = colored.at<cv::Vec3b>(i+1,j+1)[0];  colored.at<cv::Vec3b>(i+1,j+1)[0]=0;
+
+                        colored.at<cv::Vec3b>(i,j)[1] = g1;
+                        colored.at<cv::Vec3b>(i,j+1)[2] = red;
+                        colored.at<cv::Vec3b>(i+1,j)[0] = blue;
+                        colored.at<cv::Vec3b>(i+1,j+1)[1] = g2;
+
+
+                }
+            }
+            
+            cv::Mat dst;
+            copyMakeBorder(colored, dst, 2, 2, 2, 2, cv::BORDER_REFLECT101, 0);
+            height = (idxT)dst.rows;
+            width = (idxT)dst.cols;
+            data = new T[height*width*3];
+
+            uchar* ptr = dst.data;
+            for(idxT i=0;i<height*width*3;++i){
+                data[i] = ptr[i];
             }
         }
 

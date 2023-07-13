@@ -1,4 +1,6 @@
 build/
+bin/
+/assets/Car/*
 assets/Landscape/*
 !assets/Landscape/Monschau.jpg
 assets/Shapes/*

@@ -3,14 +3,6 @@
 #include <limits>
 #include <limits.h>
 
-//Algorithm approach 1 -> Each block of 9 pixel(3x3) can be iterated but
-//                        right edge of the one block will be left of the next one(same for 
-//                        top and bottom). That will make redundant operation for same pixel 
-//                        thus it is avoided.
-
-//Algorithm approach 2 -> Implemented algorithm. Green, blue, red values were populated respectively. For chrominance channels(red, blue)
-// first horizontal then vertical and diagonal neighbor cases were calculated. This header consists of 3 kernels 1-PopulateGreen, 2-PopulateBlue 3-PopulateRed
-
 
 //1th run -> populating luminance(green) channel
 //T -> image type, LT -> local type

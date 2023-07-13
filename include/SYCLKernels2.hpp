@@ -1,4 +1,4 @@
-/*Demosaicing SYCL Algorithm 2
+/*Demosaicing Kernel 2
 
 6x8 Image Demonstration for G R, B G Bayer CFA pattern (- = data, + = threadIdx ) 
 First event = Populating Green (Each threads calculates only the green it stays on)
@@ -63,7 +63,7 @@ RedDiagonalEvent event = Populating Red for diagonal neighbours (Each threads ca
     - Since the 2..7 events depend on the first event explicit barriers are placed but still there are implicit dependences because accessors access the same buffer. So that each event will run synchronously.
     - Each population could have been done in one event to fix that issue in next algorithm. (Multiple parallel_for in one command group) but it
       is not sycl conformant so it is also avoided after try.)
-    - For next kernel, single event will be used  
+    - For next kernel, single event will be used. 
 
 */
 

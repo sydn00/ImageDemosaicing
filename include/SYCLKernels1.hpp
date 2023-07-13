@@ -1,4 +1,4 @@
-/*Demosaicing SYCL Algorithm 1  
+/*Demosaicing Kernel 1  
 
 6x8 Image Demonstration for G R, B G Bayer CFA pattern (- = data, + = threadIdx ) 
 GreenEvent = Populating Green (Each threads calculates only the green it stays on)
@@ -25,14 +25,6 @@ RedEvent = Populating Red (Each thread calculates horizontal, vertical, diagonal
 - - - - - - - -
 - - - - - - - -
 
-
-    Code Notes
-    - Algorithm data access matches with the paper's demonstration.
-
-    - Successive threads data domain overlap in red and blue population 
-        which  causes some operation is done twice.
-
-    - queue object(Q) defined in_order so that each event will run synchronously.
 */
 
 
